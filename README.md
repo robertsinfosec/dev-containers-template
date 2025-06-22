@@ -10,7 +10,7 @@ A lift-and-load VS Code Dev Containers configuration that seamlessly handles Git
 >    - [`setup-git.sh`](.devcontainer/setup-git.sh)
 > 2. **Customize** the `image` and `features` in `devcontainer.json` for your tech stack
 > 3. **Browse [examples](docs/examples/)** for ready-to-use configurations (Python, React, Java, etc.)
-> 4. **Open in VS Code** and use "Dev Containers: Reopen in Container"
+> 4. **Open in VS Code** and use "Dev Containers: Reopen in Container" (Extension: <a href="vscode://ms-vscode-remote.remote-containers/new">Dev Containers</a>)
 > 
 > Your Git config and SSH keys will work automatically inside of the Dev Container for your workspace.
 
