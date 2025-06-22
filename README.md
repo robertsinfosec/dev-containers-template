@@ -2,7 +2,8 @@
 
 A lift-and-load VS Code Dev Containers configuration that seamlessly handles Git configuration and SSH key conveyance from your host machine to the containerized development environment.
 
-> [!NOTE]TL;DR - Quick Start
+> [!NOTE]
+> ## TL;DR - Quick Start
 > 
 > 1. **Copy these files** to your project's `.devcontainer/` folder:
 >    - [`devcontainer.json`](.devcontainer/devcontainer.json) 
