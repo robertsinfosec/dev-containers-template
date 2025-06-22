@@ -1,0 +1,47 @@
+// Full Stack Universal Development Environment
+// Includes Python, Node.js, Go, PHP, .NET, Java, and many other tools
+// Perfect for polyglot projects or when you need multiple language support
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Full Stack Universal",
+	"image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
+	},
+
+	// Extensions for multi-language development
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-vscode.vscode-typescript-next",
+				"golang.go",
+				"ms-dotnettools.csharp",
+				"redhat.java",
+				"bmewburn.vscode-intelephense-client",
+				"esbenp.prettier-vscode",
+				"ms-vscode.vscode-json",
+				"hashicorp.terraform",
+				"ms-kubernetes-tools.vscode-kubernetes-tools"
+			]
+		}
+	},
+
+	// Forward common ports for web development
+	"forwardPorts": [3000, 4200, 5000, 8000, 8080],
+
+	// Critical configuration - DO NOT MODIFY
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

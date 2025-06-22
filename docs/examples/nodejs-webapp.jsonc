@@ -1,0 +1,67 @@
+// Node.js Web Application Development Environment
+// Includes Node.js, npm, TypeScript, and common web development tools
+// Perfect for React, Vue, Angular, Express, and other JavaScript frameworks
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Node.js Web Development",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:18-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {}
+	},
+
+	// Extensions and settings for web development
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.vscode-typescript-next",
+				"bradlc.vscode-tailwindcss",
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint",
+				"ms-vscode.vscode-json",
+				"formulahendry.auto-rename-tag",
+				"christian-kohler.path-intellisense",
+				"ms-vscode.vscode-css-peek"
+			],
+			"settings": {
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": true
+				},
+				"typescript.preferences.quoteStyle": "single",
+				"javascript.preferences.quoteStyle": "single"
+			}
+		}
+	},
+
+	// Forward common development ports
+	"forwardPorts": [3000, 3001, 4200, 5173, 8080],
+	"portsAttributes": {
+		"3000": {
+			"label": "React Dev Server",
+			"onAutoForward": "notify"
+		},
+		"4200": {
+			"label": "Angular Dev Server",
+			"onAutoForward": "notify"
+		},
+		"5173": {
+			"label": "Vite Dev Server", 
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Critical configuration - DO NOT MODIFY
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

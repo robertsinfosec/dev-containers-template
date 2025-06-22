@@ -1,0 +1,73 @@
+// Vite React Development Environment
+// Includes Node.js, Vite build tool, and React development tools
+// Perfect for modern React applications with fast HMR
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Vite React App",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:18-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+
+	// React and modern web development extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.vscode-typescript-next",
+				"bradlc.vscode-tailwindcss",
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint",
+				"ms-vscode.vscode-json",
+				"formulahendry.auto-rename-tag",
+				"christian-kohler.path-intellisense",
+				"ms-vscode.vscode-css-peek",
+				"dsznajder.es7-react-js-snippets",
+				"ms-vscode.vscode-react-preview"
+			],
+			"settings": {
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": true
+				},
+				"typescript.preferences.quoteStyle": "single",
+				"javascript.preferences.quoteStyle": "single",
+				"emmet.includeLanguages": {
+					"javascript": "javascriptreact"
+				}
+			}
+		}
+	},
+
+	// Forward Vite dev server and preview ports
+	"forwardPorts": [5173, 4173, 3000],
+	"portsAttributes": {
+		"5173": {
+			"label": "Vite Dev Server",
+			"onAutoForward": "notify"
+		},
+		"4173": {
+			"label": "Vite Preview Server",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Install common React/Vite dependencies and start dev server
+	"postCreateCommand": [
+		"bash", "-c",
+		"chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh && npm install -g @vitejs/create-vite && echo 'Ready to create Vite React app with: npm create vite@latest'"
+	],
+
+	// Critical configuration - DO NOT MODIFY
+	// Source: https://github.com/robertsinfosec/dev-containers-template
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"remoteUser": "vscode"
+}

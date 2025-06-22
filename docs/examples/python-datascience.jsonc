@@ -1,0 +1,61 @@
+// Python Data Science Development Environment
+// Includes Jupyter, pandas, numpy, matplotlib, scikit-learn, and other common data science tools
+// Perfect for machine learning projects, data analysis, and research
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Python Data Science",
+	"image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {}
+	},
+
+	// Additional packages and extensions for data science
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.pylint",
+				"ms-python.black-formatter",
+				"ms-toolsai.jupyter",
+				"ms-toolsai.jupyter-keymap",
+				"ms-toolsai.jupyter-renderers",
+				"charliermarsh.ruff"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.enabled": true,
+				"python.linting.pylintEnabled": true,
+				"python.formatting.provider": "black",
+				"jupyter.askForKernelRestart": false
+			}
+		}
+	},
+
+	// Forward Jupyter and common development ports
+	"forwardPorts": [8888, 8080, 5000],
+	"portsAttributes": {
+		"8888": {
+			"label": "Jupyter Lab",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Install common data science packages
+	"postCreateCommand": [
+		"bash", "-c", 
+		"chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh && pip install --user jupyter jupyterlab pandas numpy matplotlib seaborn scikit-learn plotly dash streamlit"
+	],
+
+	// Critical configuration - DO NOT MODIFY
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"remoteUser": "vscode"
+}

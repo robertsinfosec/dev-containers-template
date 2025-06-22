@@ -1,0 +1,63 @@
+// Jekyll Static Site Generator Development Environment
+// Includes Jekyll, Ruby, and bundler for static site generation
+// Perfect for GitHub Pages and Jekyll-based websites
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Jekyll Static Site",
+	"image": "mcr.microsoft.com/devcontainers/jekyll:2-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "18"
+		}
+	},
+
+	// Jekyll and Ruby development extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"shopify.ruby-lsp",
+				"castwide.solargraph",
+				"yzhang.markdown-all-in-one",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-json",
+				"redhat.vscode-yaml",
+				"ginfuru.ginfuru-vscode-jekyll-syntax"
+			],
+			"settings": {
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"markdown.preview.fontSize": 14,
+				"ruby.format": "standard"
+			}
+		}
+	},
+
+	// Forward Jekyll dev server and common ports
+	"forwardPorts": [4000, 35729, 3000],
+	"portsAttributes": {
+		"4000": {
+			"label": "Jekyll Dev Server",
+			"onAutoForward": "notify"
+		},
+		"35729": {
+			"label": "Jekyll Live Reload",
+			"onAutoForward": "silent"
+		}
+	},
+
+	// Critical configuration - DO NOT MODIFY
+	// Source: https://github.com/robertsinfosec/dev-containers-template
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

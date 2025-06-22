@@ -1,0 +1,57 @@
+// Hugo Static Site Generator Development Environment
+// Includes Hugo extended, Node.js for asset processing, and Git LFS
+// Perfect for building fast static websites with Hugo
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Hugo Static Site",
+	"image": "mcr.microsoft.com/devcontainers/hugo:latest",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "18"
+		}
+	},
+
+	// Hugo and web development extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"budparr.language-hugo-vscode",
+				"eliostruyf.vscode-hugo-themer",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-json",
+				"redhat.vscode-yaml",
+				"yzhang.markdown-all-in-one"
+			],
+			"settings": {
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"markdown.preview.fontSize": 14
+			}
+		}
+	},
+
+	// Forward Hugo dev server and common ports
+	"forwardPorts": [1313, 3000, 8080],
+	"portsAttributes": {
+		"1313": {
+			"label": "Hugo Dev Server",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Critical configuration - DO NOT MODIFY
+	// Source: https://github.com/robertsinfosec/dev-containers-template
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

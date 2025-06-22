@@ -1,0 +1,47 @@
+// Go Development Environment
+// Includes Go compiler, tools, and debugging support
+// Perfect for building Go applications, microservices, and CLI tools
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Go Development",
+	"image": "mcr.microsoft.com/devcontainers/go:1.21-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {}
+	},
+
+	// Go-specific extensions and settings
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"golang.go",
+				"ms-vscode.vscode-json",
+				"redhat.vscode-yaml",
+				"ms-vscode.makefile-tools"
+			],
+			"settings": {
+				"go.gocodeAutoBuild": false,
+				"go.installDependenciesWhenBuilding": true,
+				"go.useLanguageServer": true,
+				"go.formatTool": "goimports",
+				"go.lintTool": "golint"
+			}
+		}
+	},
+
+	// Forward common Go application ports
+	"forwardPorts": [8080, 8000, 9000],
+
+	// Critical configuration - DO NOT MODIFY  
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

@@ -1,0 +1,61 @@
+// Java Spring Boot Development Environment
+// Includes Java 17, Maven, Gradle, and Spring Boot tools
+// Perfect for enterprise Java development and microservices
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": "Java Spring Boot",
+	"image": "mcr.microsoft.com/devcontainers/java:17-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {},
+		"ghcr.io/devcontainers/features/maven:1": {},
+		"ghcr.io/devcontainers/features/gradle:1": {}
+	},
+
+	// Java and Spring-specific extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"redhat.java",
+				"vscjava.vscode-java-debug",
+				"vscjava.vscode-java-test",
+				"vscjava.vscode-maven",
+				"vscjava.vscode-gradle",
+				"vmware.vscode-spring-boot",
+				"vscjava.vscode-spring-initializr",
+				"vscjava.vscode-spring-boot-dashboard"
+			],
+			"settings": {
+				"java.configuration.runtimes": [
+					{
+						"name": "JavaSE-17",
+						"path": "/usr/local/sdkman/candidates/java/current"
+					}
+				],
+				"java.compile.nullAnalysis.mode": "automatic"
+			}
+		}
+	},
+
+	// Forward Spring Boot and common Java ports
+	"forwardPorts": [8080, 8090, 9090],
+	"portsAttributes": {
+		"8080": {
+			"label": "Spring Boot Application",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Critical configuration - DO NOT MODIFY
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

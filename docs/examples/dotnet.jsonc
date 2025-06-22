@@ -1,0 +1,55 @@
+// .NET Core Development Environment
+// Includes .NET SDK, C# tools, and debugging support
+// Perfect for ASP.NET Core, Blazor, and console applications
+// Source: https://github.com/robertsinfosec/dev-containers-template
+{
+	"name": ".NET Core Development",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:7.0-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {}
+	},
+
+	// .NET and C# specific extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.vscode-dotnet-runtime",
+				"ms-vscode.vscode-json",
+				"jchannon.csharpextensions",
+				"kreativ-software.csharpextensions"
+			],
+			"settings": {
+				"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+				"dotnet.codeLens.enableReferencesCodeLens": true
+			}
+		}
+	},
+
+	// Forward ASP.NET Core and common .NET ports
+	"forwardPorts": [5000, 5001, 7000, 7001],
+	"portsAttributes": {
+		"5000": {
+			"label": "ASP.NET Core HTTP",
+			"onAutoForward": "notify"
+		},
+		"5001": {
+			"label": "ASP.NET Core HTTPS",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Critical configuration - DO NOT MODIFY
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+	"remoteUser": "vscode"
+}

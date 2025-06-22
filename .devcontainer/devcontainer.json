@@ -1,0 +1,25 @@
+// Dev Containers Template with Git/SSH Configuration
+// Source: https://github.com/robertsinfosec/dev-containers-template
+// For latest updates and examples, visit the repository above
+// For format details, see https://aka.ms/devcontainer.json
+{
+	"name": "Jekyll",
+	"image": "mcr.microsoft.com/devcontainers/jekyll:2-bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+
+	    "containerEnv": {
+        "SSH_AUTH_SOCK": "/tmp/ssh-agent.sock"
+    },
+
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
+	],
+
+	"postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh && echo 'alias ll=\"ls -la\"' >> \"$HOME/.bashrc\"",
+
+	"remoteUser": "vscode"
+}

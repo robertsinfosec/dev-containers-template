@@ -1,0 +1,267 @@
+name: Validate Configuration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+    name: Validate JSON Configuration
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate devcontainer.json
+      run: |
+        echo "Validating devcontainer.json syntax..."
+        if ! jq empty .devcontainer/devcontainer.json; then
+          echo "❌ devcontainer.json has invalid JSON syntax"
+          exit 1
+        fi
+        echo "✅ devcontainer.json syntax is valid"
+        
+        echo "Validating example JSONC files..."
+        for file in docs/examples/*.jsonc; do
+          if [ -f "$file" ]; then
+            echo "Validating $file..."
+            # Strip comments and validate JSON structure
+            if ! sed 's|//.*||g' "$file" | jq empty; then
+              echo "❌ $file has invalid JSON syntax"
+              exit 1
+            fi
+            echo "✅ $file syntax is valid"
+          fi
+        done
+        
+    - name: Check required fields
+      run: |
+        echo "Checking for required fields in devcontainer.json..."
+        
+        # Check for critical fields that shouldn't be modified
+        if ! jq -e '.containerEnv.SSH_AUTH_SOCK' .devcontainer/devcontainer.json > /dev/null; then
+          echo "❌ Missing SSH_AUTH_SOCK in containerEnv"
+          exit 1
+        fi
+        
+        if ! jq -e '.mounts | map(select(contains(".ssh"))) | length > 0' .devcontainer/devcontainer.json > /dev/null; then
+          echo "❌ Missing SSH mount in mounts array"
+          exit 1
+        fi
+        
+        if ! jq -e '.mounts | map(select(contains(".gitconfig"))) | length > 0' .devcontainer/devcontainer.json > /dev/null; then
+          echo "❌ Missing gitconfig mount in mounts array"
+          exit 1
+        fi
+        
+        if ! jq -e '.postCreateCommand | contains("setup-git.sh")' .devcontainer/devcontainer.json > /dev/null; then
+          echo "❌ Missing setup-git.sh in postCreateCommand"
+          exit 1
+        fi
+        
+        if ! jq -e '.remoteUser == "vscode"' .devcontainer/devcontainer.json > /dev/null; then
+          echo "❌ remoteUser should be 'vscode'"
+          exit 1
+        fi
+        
+        echo "✅ All required fields are present"
+
+  validate-shell:
+    runs-on: ubuntu-latest
+    name: Validate Shell Script
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install shellcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+        
+    - name: Check shell script syntax
+      run: |
+        echo "Validating setup-git.sh syntax..."
+        if ! bash -n .devcontainer/setup-git.sh; then
+          echo "❌ setup-git.sh has syntax errors"
+          exit 1
+        fi
+        echo "✅ setup-git.sh syntax is valid"
+        
+    - name: Run shellcheck
+      run: |
+        echo "Running shellcheck on setup-git.sh..."
+        shellcheck .devcontainer/setup-git.sh
+        echo "✅ shellcheck passed"
+        
+    - name: Check script permissions
+      run: |
+        echo "Checking if script is executable..."
+        if [ ! -x .devcontainer/setup-git.sh ]; then
+          echo "⚠️ setup-git.sh is not executable (this is okay, postCreateCommand will fix it)"
+        else
+          echo "✅ setup-git.sh is executable"
+        fi
+
+  test-basic-functionality:
+    runs-on: ubuntu-latest
+    name: Test Basic Functionality
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Create test Git config
+      run: |
+        mkdir -p /tmp/test-home
+        cat > /tmp/test-home/.gitconfig << 'EOF'
+        [user]
+            name = Test User
+            email = test@example.com
+        [core]
+            editor = vim
+        [alias]
+            st = status
+            co = checkout
+        EOF
+        echo "✅ Created test .gitconfig"
+        
+    - name: Create test SSH directory
+      run: |
+        mkdir -p /tmp/test-home/.ssh
+        chmod 700 /tmp/test-home/.ssh
+        
+        # Create dummy SSH key for testing
+        ssh-keygen -t rsa -b 2048 -f /tmp/test-home/.ssh/id_rsa -N ""
+        chmod 600 /tmp/test-home/.ssh/id_rsa
+        chmod 644 /tmp/test-home/.ssh/id_rsa.pub
+        
+        cat > /tmp/test-home/.ssh/config << 'EOF'
+        Host github.com
+            HostName github.com
+            User git
+            Port 22
+        EOF
+        chmod 600 /tmp/test-home/.ssh/config
+        
+        echo "✅ Created test SSH setup"
+        
+    - name: Test setup script with mock data
+      run: |
+        # Make script executable
+        chmod +x .devcontainer/setup-git.sh
+        
+        # Copy test gitconfig to expected location
+        cp /tmp/test-home/.gitconfig /tmp/host-gitconfig
+        
+        # Copy SSH directory to expected location
+        cp -r /tmp/test-home/.ssh $HOME/.ssh
+        
+        # Run the setup script
+        echo "Running setup-git.sh..."
+        ./.devcontainer/setup-git.sh
+        
+        # Verify Git config was applied
+        if ! git config --global user.name | grep -q "Test User"; then
+          echo "❌ Git user name not set correctly"
+          exit 1
+        fi
+        
+        if ! git config --global user.email | grep -q "test@example.com"; then
+          echo "❌ Git user email not set correctly"
+          exit 1
+        fi
+        
+        if ! git config --global alias.st | grep -q "status"; then
+          echo "❌ Git alias not set correctly"
+          exit 1
+        fi
+        
+        echo "✅ Setup script completed successfully"
+
+  validate-documentation:
+    runs-on: ubuntu-latest
+    name: Validate Documentation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for required files
+      run: |
+        echo "Checking for required documentation files..."
+        
+        required_files=(
+          "README.md"
+          "CONTRIBUTING.md"
+          "SECURITY.md"
+          "CHANGELOG.md"
+          "STYLE_GUIDE.md"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required file: $file"
+            exit 1
+          fi
+          echo "✅ Found $file"
+        done
+        
+    - name: Validate Markdown links
+      run: |
+        echo "Checking for broken internal links in README.md..."
+        
+        # Check if referenced files exist
+        if grep -q "\[\.devcontainer\]" README.md; then
+          if [ ! -d ".devcontainer" ]; then
+            echo "❌ README references .devcontainer directory that doesn't exist"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ Internal links appear valid"
+        
+    - name: Check code examples
+      run: |
+        echo "Validating JSON code examples in README.md..."
+        
+        # Extract JSON blocks from README and validate them
+        # This is a basic check - could be enhanced with proper JSON extraction
+        if grep -A 20 '```json' README.md | grep -E '^[[:space:]]*[{}]' > /tmp/json_snippets.txt; then
+          echo "✅ Found JSON examples in README"
+        fi
+
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for sensitive data
+      run: |
+        echo "Scanning for potential sensitive data..."
+        
+        # Check for common sensitive patterns
+        if grep -r -i "password\|secret\|token\|key.*=" . --exclude-dir=.git; then
+          echo "⚠️ Found potential sensitive data patterns"
+          echo "Please review the above matches to ensure no secrets are committed"
+        else
+          echo "✅ No obvious sensitive data patterns found"
+        fi
+        
+    - name: Check file permissions in repo
+      run: |
+        echo "Checking file permissions..."
+        
+        # Ensure shell scripts are not executable in repo (they get set executable in container)
+        if find . -name "*.sh" -executable -not -path "./.git/*"; then
+          echo "ℹ️ Found executable shell scripts in repository"
+          echo "This is usually fine as long as they don't contain sensitive data"
+        fi
+        
+        echo "✅ File permission check complete"
