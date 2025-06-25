@@ -123,7 +123,7 @@ This project aims to follow security best practices including:
 ## Contact
 
 For security-related questions or concerns:
-- Security issues: [Your Security Email]
+- Security issues: <security@robertsinfosec.com>
 - General questions: Create a GitHub discussion
 - Non-security bugs: Create a GitHub issue
 
