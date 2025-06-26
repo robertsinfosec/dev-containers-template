@@ -8,6 +8,7 @@ A lift-and-load VS Code Dev Containers configuration that seamlessly handles Git
 > 1. **Copy these files** to your project's `.devcontainer/` folder:
 >    - [`devcontainer.json`](.devcontainer/devcontainer.json) 
 >    - [`setup-git.sh`](.devcontainer/setup-git.sh)
+>    - [`post-setup.sh`](.devcontainer/post-setup.sh)
 > 2. **Customize** the `image` and `features` in `devcontainer.json` for your tech stack
 > 3. **Browse [examples](docs/examples/)** for ready-to-use configurations (Python, React, Java, etc.)
 > 4. **Open in VS Code** and use "Dev Containers: Reopen in Container" 
@@ -79,7 +80,7 @@ This creates problems when trying to mount or reference files between host and c
 
 ## What This Template Solves
 
-This repository provides a complete solution that addresses all the common gotchas mentioned above. The [.devcontainer](.devcontainer) folder contains two key files:
+This repository provides a complete solution that addresses all the common gotchas mentioned above. The [.devcontainer](.devcontainer) folder contains three key files:
 
 ### `devcontainer.json` - Container Configuration
 This file handles the Docker container setup and critical mounts:
@@ -98,7 +99,7 @@ This file handles the Docker container setup and critical mounts:
     "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,consistency=cached,readonly"
   ],
-  "postCreateCommand": "chmod +x .devcontainer/setup-git.sh && .devcontainer/setup-git.sh",
+  "postCreateCommand": "chmod +x .devcontainer/setup-git.sh .devcontainer/post-setup.sh && .devcontainer/setup-git.sh && .devcontainer/post-setup.sh",
   "remoteUser": "vscode"
 }
 ```
@@ -130,6 +131,36 @@ This Bash script handles the complex task of translating your host Git configura
 - Git aliases and custom settings
 - SSH configuration for custom hosts
 
+### `post-setup.sh` - Project-Specific Customization
+This script runs after Git/SSH setup is complete, providing a place for project-specific configuration:
+
+**What it handles:**
+- Installing additional development tools and dependencies
+- Setting up project dependencies (bundle install, npm install, etc.)
+- Customizing shell environment (.bashrc aliases and shortcuts)
+- Starting required services (databases, Docker daemon, etc.)
+- Initial project setup and configuration
+
+**Jekyll example:**
+```bash
+#!/bin/bash
+# Install Jekyll dependencies
+bundle install
+
+# Add helpful aliases to .bashrc
+echo 'alias jstart="bundle exec jekyll serve --host 0.0.0.0 --livereload"' >> ~/.bashrc
+echo 'alias jbuild="bundle exec jekyll build"' >> ~/.bashrc
+
+# Optional: Start Docker daemon for containerized services
+# sudo service docker start
+```
+
+**Key capabilities:**
+- **Full sudo access**: Install system packages and modify system configuration
+- **Git already configured**: Your Git config and SSH keys are available
+- **Shell customization**: Persistent aliases and environment variables
+- **Project automation**: Run setup commands specific to your tech stack
+
 ## How to Use This Template
 
 ### 1. Copy the Configuration Files
@@ -138,26 +169,31 @@ Copy the `.devcontainer` folder and its contents to your project root:
 your-project/
 ├── .devcontainer/
 │   ├── devcontainer.json
-│   └── setup-git.sh
+│   ├── setup-git.sh
+│   └── post-setup.sh
 ├── src/
 └── README.md
 ```
 
 ### 2. Customize for Your Tech Stack
-Edit the `devcontainer.json` file to match your project's requirements:
+Edit the `devcontainer.json` file to match your project's requirements and update `post-setup.sh` for your project-specific needs.
 
+**For a Jekyll site:**
 ```json
 {
-  "name": "My Python Project",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "name": "Jekyll Site",
+  "image": "mcr.microsoft.com/devcontainers/jekyll:2-bullseye",
   "features": {
-    "ghcr.io/devcontainers/features/git-lfs:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   // ... keep the rest of the configuration unchanged
 }
 ```
+
+**For other projects:**
+- Choose the appropriate base image for your language/framework
+- Customize `post-setup.sh` with your project's setup commands
+- Add any required features to the `features` section
 
 **Important**: Only modify the `name`, `image`, and `features` sections. The `containerEnv`, `mounts`, `postCreateCommand`, and `remoteUser` sections are critical for the Git/SSH functionality.
 
@@ -169,14 +205,51 @@ Edit the `devcontainer.json` file to match your project's requirements:
 
 ## Supported Base Images
 
-This template works with any VS Code dev container base image. Popular options include:
+**Customization Points**
 
-- **Languages**: `python`, `node`, `java`, `dotnet`, `go`, `rust`, `php`
-- **Frameworks**: `jekyll`, `hugo`, `react`, `angular`, `vue`
-- **Platforms**: `ubuntu`, `debian`, `alpine`
-- **Full stack**: `universal` (includes multiple languages)
+**Base Images** - Change the `image` field for your tech stack:
+- Jekyll: `mcr.microsoft.com/devcontainers/jekyll:2-bullseye`
+- Python: `mcr.microsoft.com/devcontainers/python:3.11`
+- Node.js: `mcr.microsoft.com/devcontainers/node:18`
+- Universal: `mcr.microsoft.com/devcontainers/universal:2`
+
+**Project Setup** - Customize `post-setup.sh` for your needs:
+- Package installation: `bundle install`, `npm install`, `pip install -r requirements.txt`
+- Development aliases and shortcuts
+- Service startup: Docker, databases, etc.
+- Project-specific configuration
 
 Find more images at: https://github.com/devcontainers/images
+
+## Using Custom Dockerfiles
+
+If you need more control than the pre-built images provide, you can use a custom Dockerfile. Here's the recommended setup for the `vscode` user with Docker-in-Docker and sudo access:
+
+```dockerfile
+# Create non-root user and add to sudoers + docker group
+RUN addgroup -g 1000 vscode && \
+    adduser -u 1000 -G vscode -s /bin/bash -D vscode && \
+    echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    usermod -aG docker vscode
+
+USER vscode
+```
+
+In your `.devcontainer/devcontainer.json`, ensure you set:
+```json
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode"
+  // ... rest of configuration
+}
+```
+
+**Why this setup works:**
+- **Interactive development**: Unlike production containers, dev containers benefit from sudo access for installing tools and dependencies
+- **Docker-in-Docker compatibility**: The `vscode` user is added to the `docker` group for container management
+- **Consistent user experience**: Uses the same user setup as Microsoft's official dev container images
 
 ## Troubleshooting
 
@@ -194,6 +267,15 @@ Find more images at: https://github.com/devcontainers/images
 - The setup script automatically fixes SSH permissions
 - If you encounter issues, the script provides detailed error messages
 - Check the container logs for specific error details
+
+### post-setup.sh Not Running
+- Ensure the file exists in `.devcontainer/post-setup.sh`
+- The script runs automatically via `postCreateCommand` - no manual execution needed
+- Check VS Code's terminal output for any error messages during container creation
+
+### Custom Commands Not Working
+- Aliases added to `.bashrc` require a new terminal session to take effect
+- For immediate access, run `source ~/.bashrc` or open a new terminal
 
 ## Additional Resources
 
